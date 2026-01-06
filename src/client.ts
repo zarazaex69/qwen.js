@@ -2,7 +2,7 @@ import type { ChatMessage, ChatRequest, ChatResponse, StreamChunk, AuthState } f
 import { QwenAuth } from "./auth"
 
 const API_BASE_URL = "https://portal.qwen.ai/v1"
-const DEFAULT_MODEL = "qwen-plus"
+const DEFAULT_MODEL = "coder-model"
 
 export class QwenClient {
   private auth: QwenAuth
