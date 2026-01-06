@@ -126,6 +126,7 @@ export class QwenClient {
 
     const decoder = new TextDecoder()
     let buffer = ""
+    let firstChunk: string | null = null
 
     while (true) {
       const { done, value } = await reader.read()
@@ -143,7 +144,20 @@ export class QwenClient {
         try {
           const chunk: StreamChunk = JSON.parse(data)
           const content = chunk.choices[0]?.delta?.content
-          if (content) yield content
+          if (!content) continue
+
+          if (firstChunk === null) {
+            firstChunk = content
+            yield content
+            continue
+          }
+
+          if (content === firstChunk) {
+            firstChunk = ""
+            continue
+          }
+
+          yield content
         } catch {
           continue
         }
