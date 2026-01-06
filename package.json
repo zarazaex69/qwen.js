@@ -1,0 +1,46 @@
+{
+  "name": "qwen.js",
+  "version": "0.0.1",
+  "description": "Elegant TypeScript SDK for Qwen AI API with OAuth/PKCE authentication",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node && bun run build:types",
+    "build:types": "tsc --project tsconfig.build.json"
+  },
+  "keywords": [
+    "qwen",
+    "ai",
+    "llm",
+    "chat",
+    "api",
+    "sdk",
+    "typescript",
+    "alibaba"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zarazaex/qwen.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zarazaex/qwen.js/issues"
+  },
+  "homepage": "https://github.com/zarazaex/qwen.js#readme",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5"
+  }
+}
