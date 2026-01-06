@@ -1,20 +1,21 @@
 export { QwenClient } from "./client"
-export { QwenAuth } from "./auth"
+export { extractToken, buildCookieString } from "./auth"
 export type {
   QwenConfig,
   ChatMessage,
-  ChatRequest,
-  ChatResponse,
+  ChatSession,
+  ChatOptions,
   StreamChunk,
-  AuthState,
-  DeviceCodeResponse,
-  TokenResponse,
+  CreateChatResponse,
+  Tool,
+  ToolFunction,
+  ToolCall,
 } from "./types"
 
 import { QwenClient } from "./client"
 
-export function createQwen(options?: { accessToken?: string; refreshToken?: string; model?: string }) {
-  return new QwenClient(options)
+export function createQwen(config: { token: string; model?: string; cookies?: string }) {
+  return new QwenClient(config)
 }
 
 export default QwenClient
