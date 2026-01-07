@@ -7,9 +7,6 @@ export type {
   ChatOptions,
   StreamChunk,
   CreateChatResponse,
-  Tool,
-  ToolFunction,
-  ToolCall,
 } from "./types"
 
 import { QwenClient } from "./client"

@@ -7,8 +7,6 @@ import type {
   ChatSession,
   QwenMessage,
   ChatOptions,
-  Tool,
-  ToolCall,
 } from "./types"
 
 const API_BASE = "https://chat.qwen.ai/api/v2"
@@ -117,7 +115,7 @@ export class QwenClient {
   async *chatStream(
     content: string,
     options?: ChatOptions
-  ): AsyncGenerator<string | ToolCall, void, unknown> {
+  ): AsyncGenerator<string, void, unknown> {
     if (!this.session) {
       await this.createChat()
     }
@@ -135,10 +133,6 @@ export class QwenClient {
       parent_id: this.session!.parentId,
       messages: [message],
       timestamp: Date.now(),
-    }
-
-    if (options?.tools && options.tools.length > 0) {
-      body.tools = options.tools
     }
 
     const response = await fetch(`${API_BASE}/chat/completions?chat_id=${chatId}`, {
@@ -188,12 +182,6 @@ export class QwenClient {
 
           if (delta.status === "finished") {
             return
-          }
-
-          if (delta.tool_calls && delta.tool_calls.length > 0) {
-            for (const tc of delta.tool_calls) {
-              yield tc
-            }
           }
 
           if (delta.content) {

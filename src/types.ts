@@ -70,7 +70,6 @@ export interface StreamChunk {
       content?: string
       phase?: string
       status?: string
-      tool_calls?: ToolCall[]
     }
   }[]
   response_id?: string
@@ -95,27 +94,6 @@ export interface ChatSession {
   model: string
 }
 
-export interface ToolFunction {
-  name: string
-  description: string
-  parameters: Record<string, unknown>
-}
-
-export interface Tool {
-  type: "function"
-  function: ToolFunction
-}
-
-export interface ToolCall {
-  id: string
-  type: "function"
-  function: {
-    name: string
-    arguments: string
-  }
-}
-
 export interface ChatOptions {
-  tools?: Tool[]
   thinkingEnabled?: boolean
 }
