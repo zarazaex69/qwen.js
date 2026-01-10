@@ -18,20 +18,15 @@ Features:
 - OAuth/PKCE device flow authentication
 - Automatic token refresh
 - Streaming responses
-- Full chat history support
 - Simple `ask()` method for quick prompts
 
-## Fast Start
+## Install
 
 ```bash
-# bun
 bun add qwen.js
-
-# npm
-npm install qwen.js
 ```
 
-## Quick Usage
+## Quick Start
 
 ```typescript
 import { createQwen } from "qwen.js"
@@ -44,7 +39,7 @@ const answer = await qwen.ask("What is quantum computing?")
 console.log(answer)
 ```
 
-## API Usage
+## Usage
 
 ### With Existing Tokens
 
@@ -97,8 +92,6 @@ const qwen = createQwen({ accessToken: "..." })
 const response = await qwen.chat([
   { role: "system", content: "You are a helpful assistant" },
   { role: "user", content: "What is 2+2?" },
-  { role: "assistant", content: "4" },
-  { role: "user", content: "And 3+3?" },
 ])
 
 console.log(response.choices[0].message.content)
@@ -122,11 +115,9 @@ const qwen2 = createQwen({
 })
 ```
 
-## Functions
+## API
 
 ### `createQwen(options?)`
-
-Creates a new Qwen client.
 
 | Option | Type | Description |
 |--------|------|-------------|
@@ -146,17 +137,7 @@ Creates a new Qwen client.
 | `ask(prompt, options?)` | Simple prompt, returns string |
 | `chat(messages, options?)` | Full chat, returns ChatResponse |
 | `chatStream(messages, options?)` | Streaming chat, yields chunks |
-
-## Development
-
-```bash
-git clone https://github.com/zarazaex/qwen.js.git
-cd qwen.js
-
-bun install
-
-bun run build
-```
+| `setModel(model)` | Change default model |
 
 ## License
 
@@ -166,10 +147,6 @@ MIT
 
 ---
 
-### Contact
-
-Telegram: [zarazaex](https://t.me/zarazaexe)<br>
-Email: [zarazaex@tuta.io](mailto:zarazaex@tuta.io)<br>
-Site: [zarazaex.xyz](https://zarazaex.xyz)
+Telegram: [zarazaex](https://t.me/zarazaexe) · [zarazaex.xyz](https://zarazaex.xyz)
 
 </div>

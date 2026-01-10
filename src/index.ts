@@ -1,17 +1,31 @@
 export { QwenClient } from "./client"
-export { extractToken, buildCookieString } from "./auth"
+export {
+  generatePKCE,
+  requestDeviceCode,
+  pollForToken,
+  refreshAccessToken,
+  isTokenExpired,
+} from "./auth"
 export type {
   QwenConfig,
   ChatMessage,
-  ChatSession,
   ChatOptions,
+  ChatResponse,
+  ChatSession,
   StreamChunk,
-  CreateChatResponse,
+  TokenState,
+  DeviceCodeResponse,
+  TokenResponse,
+  PKCEPair,
 } from "./types"
 
 import { QwenClient } from "./client"
 
-export function createQwen(config: { token: string; model?: string; cookies?: string }) {
+export function createQwen(config?: {
+  accessToken?: string
+  refreshToken?: string
+  model?: string
+}) {
   return new QwenClient(config)
 }
 
