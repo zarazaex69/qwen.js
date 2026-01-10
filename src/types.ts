@@ -1,99 +1,80 @@
 export interface QwenConfig {
-  token: string
+  accessToken?: string
+  refreshToken?: string
   model?: string
-  cookies?: string
 }
 
 export interface ChatMessage {
-  role: "user" | "assistant"
+  role: "system" | "user" | "assistant"
   content: string
 }
 
-export interface CreateChatRequest {
-  title: string
-  models: string[]
-  chat_mode: string
-  chat_type: string
-  timestamp: number
-  project_id: string
+export interface ChatOptions {
+  model?: string
+  temperature?: number
+  stream?: boolean
 }
 
-export interface CreateChatResponse {
-  success: boolean
-  request_id: string
-  data: {
-    id: string
-  }
+export interface DeviceCodeResponse {
+  device_code: string
+  user_code: string
+  verification_uri: string
+  verification_uri_complete: string
+  expires_in: number
+  interval: number
 }
 
-export interface QwenMessage {
-  fid: string
-  parentId: string | null
-  childrenIds: string[]
-  role: "user" | "assistant"
-  content: string
-  user_action: string
-  files: unknown[]
-  timestamp: number
-  models: string[]
-  chat_type: string
-  feature_config: {
-    thinking_enabled: boolean
-    output_schema: string
-    research_mode: string
-  }
-  extra: {
-    meta: {
-      subChatType: string
-    }
-  }
-  sub_chat_type: string
-  parent_id: string | null
+export interface TokenResponse {
+  access_token: string
+  refresh_token: string
+  token_type: string
+  expires_in: number
 }
 
-export interface CompletionRequest {
-  stream: boolean
-  version: string
-  incremental_output: boolean
-  chat_id: string
-  chat_mode: string
+export interface TokenState {
+  accessToken: string
+  refreshToken: string
+  expiresAt: number
+}
+
+export interface PKCEPair {
+  verifier: string
+  challenge: string
+}
+
+export interface ChatResponse {
+  id: string
+  object: string
+  created: number
   model: string
-  parent_id: string | null
-  messages: QwenMessage[]
-  timestamp: number
-}
-
-export interface StreamChunk {
-  choices?: {
-    delta: {
-      role?: string
-      content?: string
-      phase?: string
-      status?: string
-    }
+  choices: {
+    index: number
+    message: ChatMessage
+    finish_reason: string
   }[]
-  response_id?: string
   usage?: {
-    input_tokens: number
-    output_tokens: number
+    prompt_tokens: number
+    completion_tokens: number
     total_tokens: number
   }
 }
 
-export interface StreamCreatedEvent {
-  "response.created"?: {
-    chat_id: string
-    parent_id: string
-    response_id: string
-  }
+export interface StreamChunk {
+  id?: string
+  object?: string
+  created?: number
+  model?: string
+  choices?: {
+    index: number
+    delta: {
+      role?: string
+      content?: string
+    }
+    finish_reason?: string | null
+  }[]
 }
 
 export interface ChatSession {
-  chatId: string
-  parentId: string | null
+  messages: ChatMessage[]
   model: string
-}
-
-export interface ChatOptions {
-  thinkingEnabled?: boolean
 }
