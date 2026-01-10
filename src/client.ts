@@ -1,148 +1,157 @@
 import type {
   QwenConfig,
   ChatMessage,
-  CreateChatResponse,
-  StreamChunk,
-  StreamCreatedEvent,
-  ChatSession,
-  QwenMessage,
   ChatOptions,
+  ChatResponse,
+  StreamChunk,
+  TokenState,
+  DeviceCodeResponse,
 } from "./types"
+import {
+  generatePKCE,
+  requestDeviceCode,
+  pollForToken,
+  refreshAccessToken,
+  isTokenExpired,
+} from "./auth"
 
-const API_BASE = "https://chat.qwen.ai/api/v2"
-const DEFAULT_MODEL = "qwen-max-latest"
-
-function generateUUID(): string {
-  return crypto.randomUUID()
-}
-
-function formatTimezone(): string {
-  const d = new Date()
-  const offset = d.toString().match(/GMT([+-]\d{4})/)
-  const tz = offset ? offset[1] : "+0000"
-  return `${d.toDateString()} ${d.toTimeString().split(" ")[0]} GMT${tz}`
-}
+const API_BASE = "https://portal.qwen.ai/v1"
+const DEFAULT_MODEL = "qwen-plus"
 
 export class QwenClient {
-  private token: string
+  private tokens: TokenState | null = null
   private model: string
-  private cookies: string
-  private session: ChatSession | null = null
+  private pendingAuth: { deviceCode: string; verifier: string; interval: number } | null = null
 
-  constructor(config: QwenConfig) {
-    this.token = config.token
-    this.model = config.model ?? DEFAULT_MODEL
-    this.cookies = config.cookies ?? `token=${config.token}`
-  }
+  constructor(config?: QwenConfig) {
+    this.model = config?.model ?? DEFAULT_MODEL
 
-  private getHeaders(requestId?: string): Record<string, string> {
-    return {
-      "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:146.0) Gecko/20100101 Firefox/146.0",
-      Accept: "application/json",
-      "Accept-Language": "en-US,en;q=0.5",
-      "Content-Type": "application/json",
-      Version: "0.1.31",
-      source: "web",
-      "X-Request-Id": requestId ?? generateUUID(),
-      Timezone: formatTimezone(),
-      Origin: "https://chat.qwen.ai",
-      Cookie: this.cookies,
+    if (config?.accessToken) {
+      this.tokens = {
+        accessToken: config.accessToken,
+        refreshToken: config.refreshToken ?? "",
+        expiresAt: Date.now() + 6 * 60 * 60 * 1000,
+      }
     }
   }
 
-  async createChat(title = "New Chat"): Promise<string> {
-    const response = await fetch(`${API_BASE}/chats/new`, {
+  async login(): Promise<{ url: string; userCode: string }> {
+    const pkce = await generatePKCE()
+    const response = await requestDeviceCode(pkce.challenge)
+
+    this.pendingAuth = {
+      deviceCode: response.device_code,
+      verifier: pkce.verifier,
+      interval: response.interval,
+    }
+
+    return {
+      url: response.verification_uri_complete,
+      userCode: response.user_code,
+    }
+  }
+
+  async waitForAuth(): Promise<void> {
+    if (!this.pendingAuth) {
+      throw new Error("Call login() first")
+    }
+
+    const { deviceCode, verifier, interval } = this.pendingAuth
+    const tokenResponse = await pollForToken(deviceCode, verifier, interval)
+
+    this.tokens = {
+      accessToken: tokenResponse.access_token,
+      refreshToken: tokenResponse.refresh_token,
+      expiresAt: Date.now() + tokenResponse.expires_in * 1000,
+    }
+
+    this.pendingAuth = null
+  }
+
+  async authenticate(): Promise<void> {
+    const { url, userCode } = await this.login()
+    console.log(`\nOpen this URL to authenticate:\n${url}\n`)
+    console.log(`Code: ${userCode}\n`)
+    console.log("Waiting for authorization...")
+    await this.waitForAuth()
+    console.log("Authenticated successfully!\n")
+  }
+
+  setTokens(accessToken: string, refreshToken?: string): void {
+    this.tokens = {
+      accessToken,
+      refreshToken: refreshToken ?? "",
+      expiresAt: Date.now() + 6 * 60 * 60 * 1000,
+    }
+  }
+
+  getTokens(): TokenState | null {
+    return this.tokens ? { ...this.tokens } : null
+  }
+
+  private async getValidToken(): Promise<string> {
+    if (!this.tokens) {
+      throw new Error("Not authenticated. Call authenticate() or setTokens() first")
+    }
+
+    if (isTokenExpired(this.tokens) && this.tokens.refreshToken) {
+      const newTokens = await refreshAccessToken(this.tokens.refreshToken)
+      this.tokens = {
+        accessToken: newTokens.access_token,
+        refreshToken: newTokens.refresh_token,
+        expiresAt: Date.now() + newTokens.expires_in * 1000,
+      }
+    }
+
+    return this.tokens.accessToken
+  }
+
+  async chat(messages: ChatMessage[], options?: ChatOptions): Promise<ChatResponse> {
+    const token = await this.getValidToken()
+
+    const response = await fetch(`${API_BASE}/chat/completions`, {
       method: "POST",
-      headers: this.getHeaders(),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({
-        title,
-        models: [this.model],
-        chat_mode: "normal",
-        chat_type: "t2t",
-        timestamp: Date.now(),
-        project_id: "",
+        model: options?.model ?? this.model,
+        messages,
+        temperature: options?.temperature,
+        stream: false,
       }),
     })
 
     if (!response.ok) {
       const error = await response.text()
-      throw new Error(`Create chat failed: ${response.status} - ${error}`)
+      throw new Error(`Chat failed: ${response.status} - ${error}`)
     }
 
-    const data = (await response.json()) as CreateChatResponse
-    if (!data.success) {
-      throw new Error("Create chat failed: success=false")
-    }
-
-    this.session = {
-      chatId: data.data.id,
-      parentId: null,
-      model: this.model,
-    }
-
-    return data.data.id
-  }
-
-
-  private buildMessage(content: string, thinkingEnabled = false): QwenMessage {
-    const fid = generateUUID()
-    return {
-      fid,
-      parentId: this.session?.parentId ?? null,
-      childrenIds: [generateUUID()],
-      role: "user",
-      content,
-      user_action: "chat",
-      files: [],
-      timestamp: Math.floor(Date.now() / 1000),
-      models: [this.model],
-      chat_type: "t2t",
-      feature_config: {
-        thinking_enabled: thinkingEnabled,
-        output_schema: "phase",
-        research_mode: "normal",
-      },
-      extra: {
-        meta: {
-          subChatType: "t2t",
-        },
-      },
-      sub_chat_type: "t2t",
-      parent_id: this.session?.parentId ?? null,
-    }
+    return response.json()
   }
 
   async *chatStream(
-    content: string,
+    messages: ChatMessage[] | string,
     options?: ChatOptions
   ): AsyncGenerator<string, void, unknown> {
-    if (!this.session) {
-      await this.createChat()
-    }
+    const token = await this.getValidToken()
 
-    const chatId = this.session!.chatId
-    const message = this.buildMessage(content, options?.thinkingEnabled)
+    const msgs: ChatMessage[] =
+      typeof messages === "string" ? [{ role: "user", content: messages }] : messages
 
-    const body: Record<string, unknown> = {
-      stream: true,
-      version: "2.1",
-      incremental_output: true,
-      chat_id: chatId,
-      chat_mode: "normal",
-      model: this.model,
-      parent_id: this.session!.parentId,
-      messages: [message],
-      timestamp: Date.now(),
-    }
-
-    const response = await fetch(`${API_BASE}/chat/completions?chat_id=${chatId}`, {
+    const response = await fetch(`${API_BASE}/chat/completions`, {
       method: "POST",
       headers: {
-        ...this.getHeaders(),
-        "X-Accel-Buffering": "no",
-        Referer: `https://chat.qwen.ai/c/${chatId}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        model: options?.model ?? this.model,
+        messages: msgs,
+        temperature: options?.temperature,
+        stream: true,
+      }),
     })
 
     if (!response.ok) {
@@ -167,26 +176,12 @@ export class QwenClient {
       for (const line of lines) {
         if (!line.startsWith("data: ")) continue
         const data = line.slice(6).trim()
-        if (!data) continue
+        if (data === "[DONE]") return
 
         try {
-          const parsed = JSON.parse(data) as StreamChunk & StreamCreatedEvent
-
-          if (parsed["response.created"]) {
-            this.session!.parentId = parsed["response.created"].parent_id
-            continue
-          }
-
-          const delta = parsed.choices?.[0]?.delta
-          if (!delta) continue
-
-          if (delta.status === "finished") {
-            return
-          }
-
-          if (delta.content) {
-            yield delta.content
-          }
+          const chunk: StreamChunk = JSON.parse(data)
+          const content = chunk.choices?.[0]?.delta?.content
+          if (content) yield content
         } catch {
           continue
         }
@@ -194,27 +189,19 @@ export class QwenClient {
     }
   }
 
-  async chat(content: string): Promise<string> {
+  async ask(prompt: string, options?: ChatOptions): Promise<string> {
     let result = ""
-    for await (const chunk of this.chatStream(content)) {
+    for await (const chunk of this.chatStream(prompt, options)) {
       result += chunk
     }
     return result
   }
 
-  async ask(prompt: string): Promise<string> {
-    return this.chat(prompt)
-  }
-
-  newChat(): void {
-    this.session = null
-  }
-
-  getSession(): ChatSession | null {
-    return this.session
-  }
-
   setModel(model: string): void {
     this.model = model
+  }
+
+  getModel(): string {
+    return this.model
   }
 }
