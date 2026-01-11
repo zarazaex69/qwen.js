@@ -5,7 +5,6 @@ import type {
   ChatResponse,
   StreamChunk,
   TokenState,
-  DeviceCodeResponse,
 } from "./types"
 import {
   generatePKCE,
@@ -17,6 +16,7 @@ import {
 
 const API_BASE = "https://portal.qwen.ai/v1"
 const DEFAULT_MODEL = "qwen-plus"
+const TOKEN_LIFETIME_MS = 6 * 60 * 60 * 1000
 
 export class QwenClient {
   private tokens: TokenState | null = null
@@ -30,7 +30,7 @@ export class QwenClient {
       this.tokens = {
         accessToken: config.accessToken,
         refreshToken: config.refreshToken ?? "",
-        expiresAt: Date.now() + 6 * 60 * 60 * 1000,
+        expiresAt: Date.now() + TOKEN_LIFETIME_MS,
       }
     }
   }
@@ -81,7 +81,7 @@ export class QwenClient {
     this.tokens = {
       accessToken,
       refreshToken: refreshToken ?? "",
-      expiresAt: Date.now() + 6 * 60 * 60 * 1000,
+      expiresAt: Date.now() + TOKEN_LIFETIME_MS,
     }
   }
 
@@ -106,58 +106,49 @@ export class QwenClient {
     return this.tokens.accessToken
   }
 
-  async chat(messages: ChatMessage[], options?: ChatOptions): Promise<ChatResponse> {
+  private async request(endpoint: string, body: object): Promise<Response> {
     const token = await this.getValidToken()
-
-    const response = await fetch(`${API_BASE}/chat/completions`, {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        model: options?.model ?? this.model,
-        messages,
-        temperature: options?.temperature,
-        stream: false,
-      }),
+      body: JSON.stringify(body),
     })
 
     if (!response.ok) {
       const error = await response.text()
-      throw new Error(`Chat failed: ${response.status} - ${error}`)
+      throw new Error(`Request failed: ${response.status} - ${error}`)
     }
 
-    return response.json()
+    return response
+  }
+
+  async chat(messages: ChatMessage[], options?: ChatOptions): Promise<ChatResponse> {
+    const response = await this.request("/chat/completions", {
+      model: options?.model ?? this.model,
+      messages,
+      temperature: options?.temperature,
+      stream: false,
+    })
+
+    return response.json() as Promise<ChatResponse>
   }
 
   async *chatStream(
     messages: ChatMessage[] | string,
     options?: ChatOptions
   ): AsyncGenerator<string, void, unknown> {
-    const token = await this.getValidToken()
-
     const msgs: ChatMessage[] =
       typeof messages === "string" ? [{ role: "user", content: messages }] : messages
 
-    const response = await fetch(`${API_BASE}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        model: options?.model ?? this.model,
-        messages: msgs,
-        temperature: options?.temperature,
-        stream: true,
-      }),
+    const response = await this.request("/chat/completions", {
+      model: options?.model ?? this.model,
+      messages: msgs,
+      temperature: options?.temperature,
+      stream: true,
     })
-
-    if (!response.ok) {
-      const error = await response.text()
-      throw new Error(`Chat stream failed: ${response.status} - ${error}`)
-    }
 
     const reader = response.body?.getReader()
     if (!reader) throw new Error("No response body")
