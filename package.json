@@ -17,7 +17,8 @@
   ],
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target node && bun run build:types",
-    "build:types": "tsc --project tsconfig.build.json"
+    "build:types": "tsc --project tsconfig.build.json",
+    "test": "bun test"
   },
   "keywords": [
     "qwen",
