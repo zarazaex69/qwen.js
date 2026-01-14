@@ -94,7 +94,7 @@ describe("QwenClient", () => {
             { status: 200 }
           )
         )
-      )
+      ) as unknown as typeof fetch
 
       const client = new QwenClient()
       const result = await client.login()
@@ -150,12 +150,12 @@ describe("QwenClient", () => {
             { status: 200 }
           )
         )
-      })
+      }) as unknown as typeof fetch
 
       const client = new QwenClient({ accessToken: "test-token" })
       const response = await client.chat([{ role: "user", content: "Hi" }])
 
-      expect(response.choices[0].message.content).toBe("Hello!")
+      expect(response.choices[0]!.message.content).toBe("Hello!")
 
       const body = JSON.parse(capturedBody!)
       expect(body.model).toBe("qwen-plus")
@@ -186,7 +186,7 @@ describe("QwenClient", () => {
             { status: 200 }
           )
         )
-      })
+      }) as unknown as typeof fetch
 
       const client = new QwenClient({ accessToken: "test-token" })
       await client.chat([{ role: "user", content: "Hi" }], { model: "qwen-max" })
@@ -223,7 +223,7 @@ describe("QwenClient", () => {
 
       globalThis.fetch = mock(() =>
         Promise.resolve(new Response(stream, { status: 200 }))
-      )
+      ) as unknown as typeof fetch
 
       const client = new QwenClient({ accessToken: "test-token" })
       const result = await client.ask("Hi")

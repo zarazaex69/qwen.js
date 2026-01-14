@@ -85,7 +85,7 @@ describe("requestDeviceCode", () => {
 
     globalThis.fetch = mock(() =>
       Promise.resolve(new Response(JSON.stringify(mockResponse), { status: 200 }))
-    )
+    ) as unknown as typeof fetch
 
     const result = await requestDeviceCode("test-challenge")
 
@@ -96,7 +96,7 @@ describe("requestDeviceCode", () => {
   test("throws error on failed request", async () => {
     globalThis.fetch = mock(() =>
       Promise.resolve(new Response("Bad Request", { status: 400 }))
-    )
+    ) as unknown as typeof fetch
 
     await expect(requestDeviceCode("test-challenge")).rejects.toThrow(
       "Device code request failed: 400"
@@ -121,7 +121,7 @@ describe("refreshAccessToken", () => {
 
     globalThis.fetch = mock(() =>
       Promise.resolve(new Response(JSON.stringify(mockResponse), { status: 200 }))
-    )
+    ) as unknown as typeof fetch
 
     const result = await refreshAccessToken("old-refresh-token")
 
@@ -131,7 +131,7 @@ describe("refreshAccessToken", () => {
   test("throws error on failed refresh", async () => {
     globalThis.fetch = mock(() =>
       Promise.resolve(new Response("Unauthorized", { status: 401 }))
-    )
+    ) as unknown as typeof fetch
 
     await expect(refreshAccessToken("invalid-token")).rejects.toThrow(
       "Token refresh failed: 401"
