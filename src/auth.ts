@@ -41,7 +41,7 @@ export async function requestDeviceCode(challenge: string): Promise<DeviceCodeRe
     throw new Error(`Device code request failed: ${response.status} - ${error}`)
   }
 
-  return response.json()
+  return response.json() as Promise<DeviceCodeResponse>
 }
 
 export async function pollForToken(
@@ -64,10 +64,10 @@ export async function pollForToken(
     })
 
     if (response.ok) {
-      return response.json()
+      return response.json() as Promise<TokenResponse>
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as { error?: string; error_description?: string }
     if (data.error === "authorization_pending") {
       continue
     }
@@ -95,7 +95,7 @@ export async function refreshAccessToken(refreshToken: string): Promise<TokenRes
     throw new Error(`Token refresh failed: ${response.status} - ${error}`)
   }
 
-  return response.json()
+  return response.json() as Promise<TokenResponse>
 }
 
 export function isTokenExpired(state: TokenState): boolean {
