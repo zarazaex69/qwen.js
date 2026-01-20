@@ -2,6 +2,12 @@ import { describe, test, expect, mock } from "bun:test"
 import { QwenClient } from "./client"
 import type { Tool, ChatMessage } from "./types"
 
+const mockFetch = (response: any) => {
+  globalThis.fetch = mock(() =>
+    Promise.resolve(new Response(JSON.stringify(response)))
+  ) as any
+}
+
 describe("QwenClient Tool Calls", () => {
   test("sends tools in chat request", async () => {
     const mockResponse = {
@@ -31,9 +37,7 @@ describe("QwenClient Tool Calls", () => {
       ],
     }
 
-    globalThis.fetch = mock(() =>
-      Promise.resolve(new Response(JSON.stringify(mockResponse)))
-    )
+    mockFetch(mockResponse)
 
     const client = new QwenClient({ accessToken: "test-token" })
 
@@ -109,9 +113,7 @@ describe("QwenClient Tool Calls", () => {
       ],
     }
 
-    globalThis.fetch = mock(() =>
-      Promise.resolve(new Response(JSON.stringify(mockResponse)))
-    )
+    mockFetch(mockResponse)
 
     const client = new QwenClient({ accessToken: "test-token" })
 
@@ -220,7 +222,7 @@ describe("QwenClient Tool Calls", () => {
           })
         )
       )
-    })
+    }) as any
 
     const client = new QwenClient({ accessToken: "test-token" })
 
@@ -284,9 +286,7 @@ describe("QwenClient Tool Calls", () => {
       ],
     }
 
-    globalThis.fetch = mock(() =>
-      Promise.resolve(new Response(JSON.stringify(mockResponse)))
-    )
+    mockFetch(mockResponse)
 
     const client = new QwenClient({ accessToken: "test-token" })
 
