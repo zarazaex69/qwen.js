@@ -5,14 +5,18 @@ export interface QwenConfig {
 }
 
 export interface ChatMessage {
-  role: "system" | "user" | "assistant"
-  content: string
+  role: "system" | "user" | "assistant" | "tool"
+  content: string | null
+  tool_calls?: ToolCall[]
+  tool_call_id?: string
 }
 
 export interface ChatOptions {
   model?: string
   temperature?: number
   stream?: boolean
+  tools?: Tool[]
+  tool_choice?: "none" | "auto" | { type: "function"; function: { name: string } }
 }
 
 export interface DeviceCodeResponse {
@@ -59,6 +63,29 @@ export interface ChatResponse {
   }
 }
 
+export interface Tool {
+  type: "function"
+  function: {
+    name: string
+    description: string
+    parameters: Record<string, any>
+  }
+}
+
+export interface ToolCall {
+  id: string
+  type: "function"
+  function: {
+    name: string
+    arguments: string
+  }
+}
+
+export interface ToolResult {
+  tool_call_id: string
+  content: string
+}
+
 export interface StreamChunk {
   id?: string
   object?: string
@@ -69,6 +96,7 @@ export interface StreamChunk {
     delta: {
       role?: string
       content?: string
+      tool_calls?: ToolCall[]
     }
     finish_reason?: string | null
   }[]

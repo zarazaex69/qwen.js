@@ -126,13 +126,22 @@ export class QwenClient {
   }
 
   async chat(messages: ChatMessage[], options?: ChatOptions): Promise<ChatResponse> {
-    const response = await this.request("/chat/completions", {
+    const body: any = {
       model: options?.model ?? this.model,
       messages,
       temperature: options?.temperature,
       stream: false,
-    })
+    }
 
+    if (options?.tools) {
+      body.tools = options.tools
+    }
+
+    if (options?.tool_choice) {
+      body.tool_choice = options.tool_choice
+    }
+
+    const response = await this.request("/chat/completions", body)
     return response.json() as Promise<ChatResponse>
   }
 
@@ -143,12 +152,22 @@ export class QwenClient {
     const msgs: ChatMessage[] =
       typeof messages === "string" ? [{ role: "user", content: messages }] : messages
 
-    const response = await this.request("/chat/completions", {
+    const body: any = {
       model: options?.model ?? this.model,
       messages: msgs,
       temperature: options?.temperature,
       stream: true,
-    })
+    }
+
+    if (options?.tools) {
+      body.tools = options.tools
+    }
+
+    if (options?.tool_choice) {
+      body.tool_choice = options.tool_choice
+    }
+
+    const response = await this.request("/chat/completions", body)
 
     const reader = response.body?.getReader()
     if (!reader) throw new Error("No response body")
@@ -194,5 +213,13 @@ export class QwenClient {
 
   getModel(): string {
     return this.model
+  }
+
+  createToolResult(toolCallId: string, content: string): ChatMessage {
+    return {
+      role: "tool",
+      content,
+      tool_call_id: toolCallId,
+    }
   }
 }

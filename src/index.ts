@@ -17,6 +17,9 @@ export type {
   DeviceCodeResponse,
   TokenResponse,
   PKCEPair,
+  Tool,
+  ToolCall,
+  ToolResult,
 } from "./types"
 
 import { QwenClient } from "./client"
