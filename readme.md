@@ -123,7 +123,7 @@ const qwen2 = createQwen({
 |--------|------|-------------|
 | `accessToken` | `string` | Pre-existing access token |
 | `refreshToken` | `string` | Pre-existing refresh token |
-| `model` | `string` | Default model (default: `qwen-plus`) |
+| `model` | `string` | Default model (default: `coder-model`) |
 
 ### Methods
 

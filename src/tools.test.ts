@@ -14,7 +14,7 @@ describe("QwenClient Tool Calls", () => {
       id: "chat-123",
       object: "chat.completion",
       created: 1234567890,
-      model: "qwen-plus",
+      model: "coder-model",
       choices: [
         {
           index: 0,
@@ -73,7 +73,7 @@ describe("QwenClient Tool Calls", () => {
           Authorization: "Bearer test-token",
         }),
         body: JSON.stringify({
-          model: "qwen-plus",
+          model: "coder-model",
           messages,
           stream: false,
           tools,
@@ -90,7 +90,7 @@ describe("QwenClient Tool Calls", () => {
       id: "chat-123",
       object: "chat.completion",
       created: 1234567890,
-      model: "qwen-plus",
+      model: "coder-model",
       choices: [
         {
           index: 0,
@@ -141,7 +141,7 @@ describe("QwenClient Tool Calls", () => {
       "https://portal.qwen.ai/v1/chat/completions",
       expect.objectContaining({
         body: JSON.stringify({
-          model: "qwen-plus",
+          model: "coder-model",
           messages,
           stream: false,
           tools,
@@ -176,7 +176,7 @@ describe("QwenClient Tool Calls", () => {
               id: "chat-123",
               object: "chat.completion",
               created: 1234567890,
-              model: "qwen-plus",
+              model: "coder-model",
               choices: [
                 {
                   index: 0,
@@ -208,7 +208,7 @@ describe("QwenClient Tool Calls", () => {
             id: "chat-124",
             object: "chat.completion",
             created: 1234567891,
-            model: "qwen-plus",
+            model: "coder-model",
             choices: [
               {
                 index: 0,
@@ -273,7 +273,7 @@ describe("QwenClient Tool Calls", () => {
       id: "chat-123",
       object: "chat.completion",
       created: 1234567890,
-      model: "qwen-plus",
+      model: "coder-model",
       choices: [
         {
           index: 0,
@@ -310,7 +310,7 @@ describe("QwenClient Tool Calls", () => {
       "https://portal.qwen.ai/v1/chat/completions",
       expect.objectContaining({
         body: JSON.stringify({
-          model: "qwen-plus",
+          model: "coder-model",
           messages: [{ role: "user", content: "Tell me about weather tools" }],
           stream: false,
           tools,

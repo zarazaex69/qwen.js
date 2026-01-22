@@ -6,7 +6,7 @@ describe("QwenClient", () => {
     test("creates client with default model", () => {
       const client = new QwenClient()
 
-      expect(client.getModel()).toBe("qwen-plus")
+      expect(client.getModel()).toBe("coder-model")
     })
 
     test("creates client with custom model", () => {
@@ -246,7 +246,7 @@ describe("QwenClient", () => {
               id: "chat-123",
               object: "chat.completion",
               created: Date.now(),
-              model: "qwen-plus",
+              model: "coder-model",
               choices: [
                 {
                   index: 0,
@@ -266,7 +266,7 @@ describe("QwenClient", () => {
       expect(response.choices[0]!.message.content).toBe("Hello!")
 
       const body = JSON.parse(capturedBody!)
-      expect(body.model).toBe("qwen-plus")
+      expect(body.model).toBe("coder-model")
       expect(body.messages).toEqual([{ role: "user", content: "Hi" }])
       expect(body.stream).toBe(false)
     })

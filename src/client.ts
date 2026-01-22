@@ -15,7 +15,7 @@ import {
 } from "./auth"
 
 const API_BASE = "https://portal.qwen.ai/v1"
-const DEFAULT_MODEL = "qwen-plus"
+const DEFAULT_MODEL = "coder-model"
 const TOKEN_LIFETIME_MS = 6 * 60 * 60 * 1000
 
 export class QwenClient {
