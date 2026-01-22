@@ -49,8 +49,10 @@ export async function pollForToken(
   verifier: string,
   interval: number
 ): Promise<TokenResponse> {
+  let pollInterval = Number.isFinite(interval) && interval > 0 ? interval : 5
+  
   while (true) {
-    await new Promise((r) => setTimeout(r, interval * 1000))
+    await new Promise((r) => setTimeout(r, pollInterval * 1000))
 
     const response = await fetch(`${AUTH_BASE}/token`, {
       method: "POST",
@@ -72,7 +74,7 @@ export async function pollForToken(
       continue
     }
     if (data.error === "slow_down") {
-      interval += 1
+      pollInterval += 1
       continue
     }
     throw new Error(`Token poll failed: ${data.error_description || data.error}`)
