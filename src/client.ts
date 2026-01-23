@@ -5,6 +5,8 @@ import type {
   ChatResponse,
   StreamChunk,
   TokenState,
+  TextContent,
+  ImageContent,
 } from "./types"
 import {
   generatePKCE,
@@ -205,6 +207,21 @@ export class QwenClient {
       result += chunk
     }
     return result
+  }
+
+  createImageMessage(text: string, imageUrls: string[]): ChatMessage {
+    const content: (TextContent | ImageContent)[] = [
+      { type: "text", text },
+      ...imageUrls.map((url) => ({
+        type: "image_url" as const,
+        image_url: { url },
+      })),
+    ]
+
+    return {
+      role: "user",
+      content,
+    }
   }
 
   setModel(model: string): void {
