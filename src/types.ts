@@ -4,23 +4,9 @@ export interface QwenConfig {
   model?: string
 }
 
-export interface ImageContent {
-  type: "image_url"
-  image_url: {
-    url: string
-  }
-}
-
-export interface TextContent {
-  type: "text"
-  text: string
-}
-
-export type MessageContent = string | (TextContent | ImageContent)[]
-
 export interface ChatMessage {
   role: "system" | "user" | "assistant" | "tool"
-  content: MessageContent | null
+  content: string | null
   tool_calls?: ToolCall[]
   tool_call_id?: string
 }

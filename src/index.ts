@@ -20,9 +20,6 @@ export type {
   Tool,
   ToolCall,
   ToolResult,
-  ImageContent,
-  TextContent,
-  MessageContent,
 } from "./types"
 
 import { QwenClient } from "./client"
