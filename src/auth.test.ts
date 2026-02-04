@@ -13,7 +13,7 @@ describe("generatePKCE", () => {
     const pkce = await generatePKCE()
 
     expect(pkce.verifier).toBeDefined()
-    expect(pkce.challenge).toBeDefined()
+    expect(pkce.challenge).toBeDefined() // л
     expect(pkce.verifier.length).toBe(43)
     expect(pkce.challenge.length).toBeGreaterThan(0)
   })
