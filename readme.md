@@ -2,7 +2,7 @@
 
 ![Bun](https://img.shields.io/badge/-Bun-0D1117?style=flat-square&logo=Bun&logoColor=F3E6D8)
 ![TypeScript](https://img.shields.io/badge/-TypeScript-0D1117?style=flat-square&logo=typescript&logoColor=3178C6)
-![License](https://img.shields.io/badge/license-MIT-0D1117?style=flat-square&logo=open-source-initiative&logoColor=green&labelColor=0D1117)
+![License](https://img.shields.io/badge/license-BSD--3--Clause-0D1117?style=flat-square&logo=open-source-initiative&logoColor=green&labelColor=0D1117)
 
 # qwen.js
 
