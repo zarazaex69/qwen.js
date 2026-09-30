@@ -147,6 +147,6 @@ MIT
 
 ---
 
-Telegram: [zarazaex](https://t.me/zarazaexe) · [zarazaex.xyz](https://zarazaex.xyz)
+Telegram: [zarazaex](https://t.me/zarazaexe) · [[DEL]](https://[DEL])
 
 </div>
